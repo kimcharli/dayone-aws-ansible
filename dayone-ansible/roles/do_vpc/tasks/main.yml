@@ -1,0 +1,111 @@
+---
+
+######## CREATE VPC
+
+- name: Find VPC
+  ec2_vpc_net_facts:
+    region: "{{ myvpc.region }}"
+    validate_certs: no
+    filters:
+      "tag:do_tag": "{{ myvpc.tags.do_tag }}"
+  register: found_vpc
+
+- name: Register vpc if present
+  set_fact:
+    this_vpcs: "{{ found_vpc.vpcs }}"
+  when: found_vpc.vpcs|count >= 0
+
+
+- name: Create VPC {{ myvpc.name }} when absent
+  ec2_vpc_net:
+    region: "{{ myvpc.region }}"
+    validate_certs: no
+    name: "{{ myvpc.name }}"
+    cidr_block: "{{ myvpc.cidr_block }}"
+    tags:
+      do_tag: "{{ myvpc.tags.do_tag }}"
+  register: created_vpc
+  when: found_vpc.vpcs|count < 1
+
+
+- name: Register vpc if created
+  set_fact:
+    this_vpcs:
+    - "{{ created_vpc.vpc }}"
+  when: not created_vpc.skipped is defined
+
+
+- name: Register vpc id
+  set_fact:
+    this_vpc_id: "{{ this_vpcs[0].id }}"
+
+
+
+######## CREATE IGW
+
+- name: Create IGW of VPC {{ myvpc.name }} in "{{ myvpc.region }}" with "{{ this_vpc_id }}"
+  ec2_vpc_igw:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    vpc_id:           "{{ this_vpc_id }}"
+  register: created_igw
+
+- name: Register igw id "{{created_igw.gateway_id}}"
+  set_fact:
+    this_igw_id: "{{created_igw.gateway_id}}"
+
+
+######## CREATE SECURITY GROUP
+- name: Create Security Group
+  include_role:
+    name: do_vpc/security_group
+    tasks_from: main.yml
+
+
+######## CREATE SUBNET
+- name: Create Subnet
+  include_role:
+    name: do_vpc/subnet
+    tasks_from: main.yml
+  loop: "{{ myvpc.subnets }}"
+  loop_control:
+    loop_var: mysubnet
+
+
+
+######## UPDATE ROUTETABLE
+- name: Create Route Table in VPC {{ myvpc.name }}
+  ec2_vpc_route_table:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    vpc_id:           "{{ this_vpc_id }}"
+    subnets:
+    - "{{ myvpc.subnets[0].prefix }}"
+    - "{{ myvpc.subnets[1].prefix }}"
+    routes:
+    - dest: 0.0.0.0/0
+      gateway_id:     "{{ this_igw_id }}"
+    tags:
+      do_tag:         "{{ myvpc.tags.do_tag }}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

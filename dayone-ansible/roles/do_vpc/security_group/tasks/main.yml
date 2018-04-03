@@ -1,0 +1,55 @@
+---
+######## CREATE Security Groups
+
+- name: create security group for fxp0
+  ec2_group:
+    region: "{{ myvpc.region }}"
+    validate_certs: no
+    vpc_id:           "{{ this_vpc_id }}"
+    name: fxp0
+    description: Allow SSH for management
+    rules:
+    - proto: tcp
+      from_port: 22
+      to_port: 22
+      cidr_ip: "{{ myvpc.cidr_block }}"
+    - proto: tcp
+      from_port: 22
+      to_port: 22
+      cidr_ip: "{{ do_dict.myip }}"
+  register: sg_fxp0
+  ignore_errors: True
+
+
+- name: create security group for ge000
+  ec2_group:
+    region: "{{ myvpc.region }}"
+    validate_certs: no
+    vpc_id:           "{{ this_vpc_id }}"
+    name: ge000
+    description: Allow IPSEC/IKE
+    rules:
+    - proto: udp
+      from_port: 500
+      to_port: 500
+      cidr_ip: 0.0.0.0/0
+    - proto: udp
+      from_port: 4500
+      to_port: 4500
+      cidr_ip: 0.0.0.0/0
+    - proto: 50
+      from_port: 0
+      to_port: 0
+      cidr_ip: 0.0.0.0/0
+    - proto: 51
+      from_port: 0
+      to_port: 0
+      cidr_ip: 0.0.0.0/0
+  register: sg_ge000
+  ignore_errors: True
+
+
+
+
+
+

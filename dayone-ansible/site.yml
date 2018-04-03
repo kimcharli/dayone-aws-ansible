@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+#  - include_role:
+#      name: do_vpc
+#      tasks_from: main.yml
+#    loop: "{{ do_vpcs }}"
+#  - debug: var=do_vpcs
+#  - name: test
+#    debug: msg="{{ item.name }}"
+#    loop: "{{do_vpcs}}"
+  - include_role:
+      name: do_vpc
+      tasks_from: main.yml
+    loop: "{{ do_vpcs }}"
+    loop_control:
+      loop_var: myvpc
+
+
+

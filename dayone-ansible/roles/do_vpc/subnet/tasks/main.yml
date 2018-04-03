@@ -1,0 +1,144 @@
+---
+######## CREATE SUBNET
+- name: Find Subnet {{ mysubnet.name }} of VPC {{ myvpc.name }}
+  ec2_vpc_subnet_facts:
+    region: "{{ myvpc.region }}"
+    validate_certs: no
+    filters:
+      vpc-id: "{{ this_vpc_id }}"
+      "tag:Name": "{{ mysubnet.name }}"
+  register: found_subnet
+
+- name: Register subnet if present
+  set_fact:
+    this_subnets: "{{ found_subnet.subnets }}"
+  when: found_subnet.subnets|count >= 0
+
+
+- name: Create Subnet {{ mysubnet.name }} of VPC {{ myvpc.name }}
+  ec2_vpc_subnet:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    vpc_id:           "{{ this_vpc_id }}"
+    cidr:             "{{ mysubnet.prefix }}"
+    az:               "{{ mysubnet.az }}"
+    tags:
+      do_tag: "{{ myvpc.tags.do_tag }}"
+      Name:      "{{ mysubnet.name }}"
+  register: created_subnet
+  when: found_subnet.subnets|count < 1
+
+
+- name: Register subnet if created
+  set_fact:
+    this_subnets:
+    - "{{ created_subnet.subnet }}"
+  when: not created_subnet.skipped is defined
+
+
+- name: Register subnet id
+  set_fact:
+    this_subnet_id: "{{ this_subnets.0.id }}"
+
+######## CREATE INTERFACES
+
+- name: Find fxp0
+  ec2_eni_facts:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    filters:
+      description: "{{ mysubnet.name }}-fxp0"
+  register: found_fxp0
+
+- name: Register found FXP0 ID
+  set_fact:
+    this_fxp0_id: "{{ found_fxp0.network_interfaces[0].id }}"
+  when: found_fxp0.network_interfaces|count > 0
+
+- name: allocate a new elastic IP and associate it with fxp0
+  ec2_eip:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    device_id: "{{ this_fxp0_id }}"
+    in_vpc: True
+  when: found_fxp0.network_interfaces|count > 0
+
+- name: Create ENI for fxp0
+  ec2_eni:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    subnet_id:        "{{ this_subnet_id }}"
+    description:      "{{ mysubnet.name }}-fxp0"
+    security_groups:
+    - fxp0
+    state: present
+  register: created_fxp0
+  when: found_fxp0.network_interfaces|count <= 0
+
+- debug: var=created_fxp0
+  when: found_fxp0.network_interfaces|count <= 0
+
+- name: Register Created FXP0 ID
+  set_fact:
+    this_fxp0_id: "{{ created_fxp0.interface.id }}"
+  when: found_fxp0.network_interfaces|count <= 0
+
+- name: Find ge000
+  ec2_eni_facts:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    filters:
+      description: "{{ mysubnet.name }}-ge000"
+#      subnet_id: "{{ this_subnet_id }}"
+  register: found_ge000
+
+- name: Register found GE000 ID
+  set_fact:
+    this_ge000_id: "{{ found_ge000.network_interfaces[0].id }}"
+  when: found_ge000.network_interfaces|count > 0
+
+- name: Create ENI for ge000
+  ec2_eni:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    subnet_id:        "{{ this_subnet_id }}"
+    description:      "{{ mysubnet.name }}-ge000"
+    security_groups:
+    - fxp0
+    - ge000
+    state: present
+  register: created_ge000
+  when: found_ge000.network_interfaces|count <= 0
+
+- debug: var=created_ge000
+  when: found_ge000.network_interfaces|count <= 0
+
+- name: Register Created GE000 ID
+  set_fact:
+    this_ge000_id: "{{ created_ge000.interface.id }}"
+  when: found_ge000.network_interfaces|count <= 0
+
+- name: Find vSRX "{{ myvpc.name }}-{{ mysubnet.name }}"
+  ec2_instance_facts:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    filters:
+      "tag:Name": Example
+      "tag:Name": "{{ myvpc.name }}-{{ mysubnet.name }}"
+  register: found_ec2
+
+- debug: var=found_ec2
+
+- name: Create vSRX
+  ec2:
+    region:           "{{ myvpc.region }}"
+    validate_certs:   no
+    key_name: "{{ do_dict.key_name }}"
+    instance_type: "{{ do_dict.vsrx_instance_type }}"
+    image: "{{ vsrx_ami[myvpc.region] }}"
+    instance_tags:
+      Name: "{{ myvpc.name }}-{{ mysubnet.name }}"
+    network_interfaces:
+    - "{{ this_fxp0_id }}"
+    - "{{ this_ge000_id }}"
+  when: found_ec2.instances|count <= 0

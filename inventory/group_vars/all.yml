@@ -1,0 +1,33 @@
+---
+do_dict:
+    vsrx_instance_type: c4.xlarge
+    vsrx_user: ec2-user
+    myip: 66.129.241.0/24
+    key_name: day-one
+
+vsrx_ami:
+  us-west-2: ami-e42db19c
+
+do_vpcs:
+  - name: tvpc1
+    region: us-west-2
+    cidr_block: 10.10.128.0/17
+    tags:
+      do_tag: recipe-4
+    subnets:
+    - name: subnet1
+      prefix: 10.10.128.0/24
+      az: us-west-2a
+    - name: subnet2
+      prefix: 10.10.129.0/24
+      az: us-west-2b
+    hostnames:
+    - host-tvpc1-1
+    - host-tvpc1-2
+
+
+
+
+
+
+
