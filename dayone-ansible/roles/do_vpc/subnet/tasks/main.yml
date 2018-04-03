@@ -75,8 +75,8 @@
   register: created_fxp0
   when: found_fxp0.network_interfaces|count <= 0
 
-- debug: var=created_fxp0
-  when: found_fxp0.network_interfaces|count <= 0
+#- debug: var=created_fxp0
+#  when: found_fxp0.network_interfaces|count <= 0
 
 - name: Register Created FXP0 ID
   set_fact:
@@ -110,8 +110,8 @@
   register: created_ge000
   when: found_ge000.network_interfaces|count <= 0
 
-- debug: var=created_ge000
-  when: found_ge000.network_interfaces|count <= 0
+#- debug: var=created_ge000
+#  when: found_ge000.network_interfaces|count <= 0
 
 - name: Register Created GE000 ID
   set_fact:
@@ -127,7 +127,7 @@
       "tag:Name": "{{ myvpc.name }}-{{ mysubnet.name }}"
   register: found_ec2
 
-- debug: var=found_ec2
+#- debug: var=found_ec2
 
 - name: Create vSRX
   ec2:
@@ -141,4 +141,5 @@
     network_interfaces:
     - "{{ this_fxp0_id }}"
     - "{{ this_ge000_id }}"
-  when: found_ec2.instances|count <= 0
+  when: found_ec2.instances|count <= 0 or found_ec2.instances[0].state.name != "running"
+

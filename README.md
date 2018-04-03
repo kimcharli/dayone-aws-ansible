@@ -60,7 +60,7 @@ ubuntu@ip-172-31-20-165:~$
 
 ubuntu@ip-172-31-20-165:~$ sudo apt update
 
-ubuntu@ip-172-31-20-165:~$ sudo apt -y install awscli python-pip
+ubuntu@ip-172-31-20-165:~$ sudo apt -y install awscli python-pip unzip
 
 ubuntu@ip-172-31-20-165:~$ pip install ansible==2.5.0 boto3 boto
 
@@ -98,6 +98,71 @@ ubuntu@ip-172-31-20-165:~$
 
 ubuntu@ip-172-31-20-165:~/dayone-ansible$
 
+
+ubuntu@ip-172-31-20-165:~$ wget https://github.com/kimcharli/dayone-aws-ansible/archive/master.zip
+--2018-04-03 04:05:39--  https://github.com/kimcharli/dayone-aws-ansible/archive/master.zip
+Resolving github.com (github.com)... 192.30.255.112, 192.30.255.113
+Connecting to github.com (github.com)|192.30.255.112|:443... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: https://codeload.github.com/kimcharli/dayone-aws-ansible/zip/master [following]
+--2018-04-03 04:05:39--  https://codeload.github.com/kimcharli/dayone-aws-ansible/zip/master
+Resolving codeload.github.com (codeload.github.com)... 192.30.255.121, 192.30.255.120
+Connecting to codeload.github.com (codeload.github.com)|192.30.255.121|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [application/zip]
+Saving to: ‚Äòmaster.zip‚Äô
+
+master.zip                                 [ <=>                                                                        ]   7.55K  --.-KB/s    in 0s
+
+2018-04-03 04:05:40 (95.8 MB/s) - ‚Äòmaster.zip‚Äô saved [7730]
+
+ubuntu@ip-172-31-20-165:~$
+
+ubuntu@ip-172-31-20-165:~$ unzip master.zip
+Archive:  master.zip
+7e293ffb7c045032a1acf4592e74950d1a7009a1
+   creating: dayone-aws-ansible-master/
+  inflating: dayone-aws-ansible-master/README.md
+   creating: dayone-aws-ansible-master/dayone-ansible/
+  inflating: dayone-aws-ansible-master/dayone-ansible/ansible.cfg
+   creating: dayone-aws-ansible-master/dayone-ansible/roles/
+   creating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/
+   creating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/security_group/
+   creating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/security_group/tasks/
+  inflating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/security_group/tasks/main.yml
+   creating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/subnet/
+   creating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/subnet/tasks/
+  inflating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/subnet/tasks/main.yml
+   creating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/tasks/
+  inflating: dayone-aws-ansible-master/dayone-ansible/roles/do_vpc/tasks/main.yml
+  inflating: dayone-aws-ansible-master/dayone-ansible/site.yml
+   creating: dayone-aws-ansible-master/inventory/
+   creating: dayone-aws-ansible-master/inventory/group_vars/
+  inflating: dayone-aws-ansible-master/inventory/group_vars/all.yml
+ extracting: dayone-aws-ansible-master/inventory/hosts
+ubuntu@ip-172-31-20-165:~$
+ubuntu@ip-172-31-20-165:~$ cd dayone-aws-ansible-master/dayone-ansible/
+ubuntu@ip-172-31-20-165:~/dayone-aws-ansible-master/dayone-ansible$
+ubuntu@ip-172-31-20-165:~/dayone-aws-ansible-master/dayone-ansible$ ansible-playbook -i ../inventory/hosts site.yml
+
+
+
+ckim-mbp:Downloads ckim$ ssh -i "day-one.pem" root@ec2-34-208-121-121.us-west-2.compute.amazonaws.com
+The authenticity of host 'ec2-34-208-121-121.us-west-2.compute.amazonaws.com (34.208.121.121)' can't be established.
+ECDSA key fingerprint is SHA256:iXV/jPbeKkSWFajE0h6FYizSlSeGegdG+h+6Dx2PAy8.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ec2-34-208-121-121.us-west-2.compute.amazonaws.com,34.208.121.121' (ECDSA) to the list of known hosts.
+Permission denied (publickey).
+ckim-mbp:Downloads ckim$ ssh -i "day-one.pem" ec2-user@ec2-34-208-121-121.us-west-2.compute.amazonaws.com
+--- JUNOS 17.4R1-S1.9 Kernel 64-bit  JNPR-11.0-20180127.fdc8dfc_buil
+ec2-user> show interfaces terse ge*
+Interface               Admin Link Proto    Local                 Remote
+ge-0/0/0                up    up
+
+ec2-user> exit
+
+Connection to ec2-34-208-121-121.us-west-2.compute.amazonaws.com closed.
+ckim-mbp:Downloads ckim$
 
 
 
