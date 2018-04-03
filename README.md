@@ -166,3 +166,12 @@ ckim-mbp:Downloads ckim$
 
 
 
+dynamic inventory
+http://docs.ansible.com/ansible/latest/intro_dynamic_inventory.html#example-aws-ec2-external-inventory-script
+```
+( cd ../inventory ; wget https://raw.github.com/ansible/ansible/devel/contrib/inventory/ec2.py )
+( cd ../inventory ; wget https://raw.github.com/ansible/ansible/devel/contrib/inventory/ec2.ini )
+( cd ../inventory ; python ec2.py )
+
+```
+
