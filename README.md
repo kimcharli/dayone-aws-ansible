@@ -20,6 +20,7 @@ services
 -> Next
 -> Create
 ```
+
 Once get online, follow Connect
 ```
 ssh -i "day-one.pem" ubuntu@ec2-35-162-18-126.us-west-2.compute.amazonaws.com
@@ -96,6 +97,7 @@ ubuntu@ip-172-31-20-165:~$
 ```
 
 
+```
 ubuntu@ip-172-31-20-165:~/dayone-ansible$
 
 
@@ -163,7 +165,7 @@ ec2-user> exit
 
 Connection to ec2-34-208-121-121.us-west-2.compute.amazonaws.com closed.
 ckim-mbp:Downloads ckim$
-
+```
 
 
 dynamic inventory
